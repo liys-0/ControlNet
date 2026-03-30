@@ -78,6 +78,9 @@ If you prefer using `pip`, you can install the required packages directly from `
 python -m venv venv
 source venv/bin/activate  # On Windows use: venv\Scripts\activate
 
+# Upgrade build tools first
+pip install --upgrade pip setuptools wheel
+
 # Install dependencies
 pip install -r requirements.txt
 ```
