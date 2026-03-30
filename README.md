@@ -56,12 +56,33 @@ Note that the way we connect layers is computational efficient. The original SD 
 
 2023/02/11 - [Low VRAM mode](docs/low_vram.md) is added. Please use this mode if you are using 8GB GPU(s) or if you want larger batch size.
 
+# Environment Setup
+
+You can set up the environment using either Conda or Pip. We highly recommend using Conda to manage dependencies.
+
+### Option 1: Using Conda (Recommended)
+
+First, create a new conda environment and install the dependencies:
+
+```bash
+conda env create -f environment.yaml
+conda activate control
+```
+
+### Option 2: Using Pip
+
+If you prefer using `pip`, you can install the required packages directly from `requirements.txt`:
+
+```bash
+# Create a virtual environment (optional but recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
 # Production-Ready Pretrained Models
-
-First create a new conda environment
-
-    conda env create -f environment.yaml
-    conda activate control
 
 All models and detectors can be downloaded from [our Hugging Face page](https://huggingface.co/lllyasviel/ControlNet). Make sure that SD models are put in "ControlNet/models" and detectors are put in "ControlNet/annotator/ckpts". Make sure that you download all necessary pretrained weights and detector models from that Hugging Face page, including HED edge detection model, Midas depth estimation model, Openpose, and so on. 
 
