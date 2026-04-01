@@ -34,7 +34,9 @@ def generate_images_from_folder(
     model = create_model("./models/cldm_v15.yaml").cpu()
 
     print(f"Loading trained weights from {checkpoint_path}")
-    model.load_state_dict(load_state_dict(checkpoint_path, location="cuda"))
+    model.load_state_dict(
+        load_state_dict(checkpoint_path, location="cuda"), strict=False
+    )
     model = model.cuda()
     ddim_sampler = DDIMSampler(model)
     apply_canny = CannyDetector()
@@ -68,8 +70,15 @@ def generate_images_from_folder(
             img = resize_image(HWC3(input_image), image_resolution)
             H, W, C = img.shape
 
-            detected_map = apply_canny(img, low_threshold, high_threshold)
-            detected_map = HWC3(detected_map)
+            global _raw_control_image_flag
+            if _raw_control_image_flag:
+                # Bypass Canny, use the image exactly as it is (for pre-computed edge maps)
+                detected_map = img.copy()
+                print("Using raw image as control (bypassing Canny detector)...")
+            else:
+                # Extract Canny edges
+                detected_map = apply_canny(img, low_threshold, high_threshold)
+                detected_map = HWC3(detected_map)
 
             edge_output_path = os.path.join(output_folder, f"{base_name}_edges.png")
             cv2.imwrite(edge_output_path, detected_map)
