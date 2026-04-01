@@ -29,6 +29,7 @@ def generate_images_from_folder(
     eta=0.0,
     low_threshold=100,
     high_threshold=200,
+    raw_control_image=False,
 ):
     print(f"Loading model architecture from ./models/cldm_v15.yaml")
     model = create_model("./models/cldm_v15.yaml").cpu()
@@ -70,8 +71,7 @@ def generate_images_from_folder(
             img = resize_image(HWC3(input_image), image_resolution)
             H, W, C = img.shape
 
-            global _raw_control_image_flag
-            if _raw_control_image_flag:
+            if raw_control_image:
                 # Bypass Canny, use the image exactly as it is (for pre-computed edge maps)
                 detected_map = img.copy()
                 print("Using raw image as control (bypassing Canny detector)...")
@@ -187,10 +187,15 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # We need to pass args to the function to read raw_control_image flag
+    global _raw_control_image_flag
+    _raw_control_image_flag = args.raw_control_image
+
     generate_images_from_folder(
         input_folder=args.input_folder,
         output_folder=args.output_folder,
         checkpoint_path=args.checkpoint,
         prompt=args.prompt,
         num_samples=args.num_samples,
+        raw_control_image=args.raw_control_image,
     )
