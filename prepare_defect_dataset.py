@@ -11,6 +11,7 @@ def prepare_defect_dataset():
     input_base = "/home/lys/projects/cadd/amd/POC_Dataset/patches"
     pfib_dir = os.path.join(input_base, "pfib")
     gt_dir = os.path.join(input_base, "gt")
+    avalon_dir = os.path.join(input_base, "avalon")
 
     output_base = "/home/lys/projects/POC_Dataset/for_ControlNet_defect"
     source_dir = os.path.join(output_base, "source")
@@ -28,8 +29,9 @@ def prepare_defect_dataset():
         filename = os.path.basename(pfib_path)
 
         gt_path = os.path.join(gt_dir, filename)
+        avalon_path = os.path.join(avalon_dir, filename)
 
-        if not os.path.exists(gt_path):
+        if not os.path.exists(gt_path) or not os.path.exists(avalon_path):
             continue
 
         gt_img = cv2.imread(gt_path, cv2.IMREAD_GRAYSCALE)
@@ -38,11 +40,18 @@ def prepare_defect_dataset():
             continue
 
         pfib_img = cv2.imread(pfib_path)
-        if pfib_img is None:
+        avalon_img = cv2.imread(avalon_path)
+        if pfib_img is None or avalon_img is None:
             continue
 
-        edge_map = cv2.Canny(pfib_img, 100, 200)
-        edge_map_3c = np.stack([edge_map] * 3, axis=-1)
+        pfib_edge_map = cv2.Canny(pfib_img, 100, 200)
+        avalon_edge_map = cv2.Canny(avalon_img, 100, 200)
+
+        combined_edge_map = avalon_edge_map.copy()
+        defect_mask = gt_img > 0
+        combined_edge_map[defect_mask] = pfib_edge_map[defect_mask]
+
+        edge_map_3c = np.stack([combined_edge_map] * 3, axis=-1)
 
         out_source_path = os.path.join(source_dir, filename)
         cv2.imwrite(out_source_path, edge_map_3c)
