@@ -36,7 +36,7 @@ def generate_defect(args):
 
     if os.path.exists(args.lora_path):
         print(f"Injecting LoRA and loading weights from {args.lora_path}")
-        inject_trainable_lora(model.model.diffusion_model, rank=4)
+        inject_trainable_lora(model.model.diffusion_model, rank=32)
         lora_dict = torch.load(args.lora_path, map_location="cuda")
         model.model.diffusion_model = load_lora_up_down(
             model.model.diffusion_model, lora_dict
@@ -163,7 +163,10 @@ if __name__ == "__main__":
         help="Path to trained LoRA model",
     )
     parser.add_argument(
-        "--prompt", type=str, default="defect pfib", help="Prompt to generate"
+        "--prompt",
+        type=str,
+        default="defect pfib, grayscale, monochrome",
+        help="Prompt to generate",
     )
     parser.add_argument(
         "--a_prompt",
@@ -174,7 +177,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--n_prompt",
         type=str,
-        default="longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality",
+        default="color, colorful, chromatic, sepia, longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality",
         help="Negative prompt",
     )
     parser.add_argument(

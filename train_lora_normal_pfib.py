@@ -34,7 +34,7 @@ for param in model.control_model.parameters():
     param.requires_grad = False
 
 print("Injecting LoRA into UNet...")
-lora_params = inject_trainable_lora(model.model.diffusion_model, rank=4)
+lora_params = inject_trainable_lora(model.model.diffusion_model, rank=32)
 
 
 def configure_lora_optimizers():
