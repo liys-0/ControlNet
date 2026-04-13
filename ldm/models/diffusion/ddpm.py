@@ -1889,9 +1889,9 @@ class LatentUpscaleDiffusion(LatentDiffusion):
         log["reconstruction"] = xrec
         log["x_lr"] = x_low
         log[
-            f"x_lr_rec_@noise_levels{
-                '-'.join(map(lambda x: str(x), list(noise_level.cpu().numpy())))
-            }"
+            f"x_lr_rec_@noise_levels{'-'.join(map(lambda x: str(
+                        x
+                    ), list(noise_level.cpu().numpy())))}"
         ] = x_low_rec
         if self.model.conditioning_key is not None:
             if hasattr(self.cond_stage_model, "decode"):
