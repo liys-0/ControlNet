@@ -6,11 +6,10 @@ from torch.utils.data import Dataset
 
 
 class MyDataset(Dataset):
-    def __init__(self):
+    def __init__(self, data_dir="/homes/yusha/POC_Dataset/for_ControlNet/"):
+        self.data_dir = data_dir
         self.data = []
-        with open(
-            "/homes/yusha/POC_Dataset/for_ControlNet/prompt.json", "rt"
-        ) as f:
+        with open(self.data_dir + "prompt.json", "rt") as f:
             for line in f:
                 self.data.append(json.loads(line))
 
@@ -24,12 +23,8 @@ class MyDataset(Dataset):
         target_filename = item["target"]
         prompt = item["prompt"]
 
-        source = cv2.imread(
-            "/homes/yusha/POC_Dataset/for_ControlNet/" + source_filename
-        )
-        target = cv2.imread(
-            "/homes/yusha/POC_Dataset/for_ControlNet/" + target_filename
-        )
+        source = cv2.imread(self.data_dir + source_filename)
+        target = cv2.imread(self.data_dir + target_filename)
 
         # Resize to 512x512 as SD 1.5 is optimized for this resolution
         # source = cv2.resize(source, (512, 512), interpolation=cv2.INTER_LINEAR)
