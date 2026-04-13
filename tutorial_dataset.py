@@ -9,7 +9,7 @@ class MyDataset(Dataset):
     def __init__(self):
         self.data = []
         with open(
-            "/home/lys/projects/POC_Dataset/for_ControlNet/prompt.json", "rt"
+            "/homes/yusha/POC_Dataset/for_ControlNet/prompt.json", "rt"
         ) as f:
             for line in f:
                 self.data.append(json.loads(line))
@@ -25,10 +25,10 @@ class MyDataset(Dataset):
         prompt = item["prompt"]
 
         source = cv2.imread(
-            "/home/lys/projects/POC_Dataset/for_ControlNet/" + source_filename
+            "/homes/yusha/POC_Dataset/for_ControlNet/" + source_filename
         )
         target = cv2.imread(
-            "/home/lys/projects/POC_Dataset/for_ControlNet/" + target_filename
+            "/homes/yusha/POC_Dataset/for_ControlNet/" + target_filename
         )
 
         # Resize to 512x512 as SD 1.5 is optimized for this resolution

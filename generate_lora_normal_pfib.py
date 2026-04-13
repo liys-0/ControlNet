@@ -25,14 +25,18 @@ def generate_defect(args):
 
     if os.path.exists(args.controlnet_path):
         print(f"Loading ControlNet from {args.controlnet_path}")
-        model.load_state_dict(load_state_dict(args.controlnet_path, location="cuda"))
+        #model.load_state_dict(load_state_dict(args.controlnet_path, location="cuda"))
+        model.load_state_dict(load_state_dict(args.controlnet_path, location="cuda"), strict=False)
     else:
         print(
             f"ControlNet {args.controlnet_path} not found. Attempting default model..."
         )
+        #model.load_state_dict(
+        #    load_state_dict("./models/control_sd15_canny.pth", location="cuda")
+        #)
         model.load_state_dict(
             load_state_dict("./models/control_sd15_canny.pth", location="cuda")
-        )
+        , strict=False)
 
     if os.path.exists(args.lora_path):
         print(f"Injecting LoRA and loading weights from {args.lora_path}")
@@ -184,7 +188,7 @@ if __name__ == "__main__":
         "--num_samples", type=int, default=1, help="Number of images to generate"
     )
     parser.add_argument(
-        "--image_resolution", type=int, default=512, help="Output image resolution"
+        "--image_resolution", type=int, default=256, help="Output image resolution"
     )
     parser.add_argument(
         "--low_threshold",

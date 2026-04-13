@@ -20,7 +20,7 @@ def generate_images_from_folder(
     a_prompt="best quality, extremely detailed",
     n_prompt="longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality",
     num_samples=1,
-    image_resolution=512,
+    image_resolution=256,
     ddim_steps=20,
     guess_mode=False,
     strength=1.0,
@@ -35,9 +35,8 @@ def generate_images_from_folder(
     model = create_model("./models/cldm_v15.yaml").cpu()
 
     print(f"Loading trained weights from {checkpoint_path}")
-    model.load_state_dict(
-        load_state_dict(checkpoint_path, location="cuda"), strict=False
-    )
+    #model.load_state_dict(load_state_dict(checkpoint_path, location="cuda"))
+    model.load_state_dict(load_state_dict(checkpoint_path, location="cuda"), strict=False)
     model = model.cuda()
     ddim_sampler = DDIMSampler(model)
     apply_canny = CannyDetector()
@@ -178,6 +177,14 @@ if __name__ == "__main__":
         default="normal pfib image",
         help="Text prompt for generation",
     )
+
+    parser.add_argument(
+        "--raw_control_image",
+        type=bool,
+        default=False,
+        help="Whether to use raw control images",
+    )
+
     parser.add_argument(
         "--num_samples",
         type=int,

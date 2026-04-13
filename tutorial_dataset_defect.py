@@ -6,7 +6,7 @@ from torch.utils.data import Dataset
 
 
 class DefectDataset(Dataset):
-    def __init__(self, base_dir="/home/lys/projects/POC_Dataset/for_ControlNet_defect"):
+    def __init__(self, base_dir="/homes/yusha/POC_Dataset/for_ControlNet_defect"):
         self.data = []
         self.base_dir = base_dir
         json_path = os.path.join(base_dir, "prompt.json")
