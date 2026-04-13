@@ -24,6 +24,7 @@ source venv/bin/activate
 # need to set up the latest version of the trained model using normal pfib data 
 # Run the LoRA training script
 python train_lora_defect_pfib.py \
+    --dataset_dir "/homes/yusha/POC_Dataset/for_ControlNet_defect" \
     --mask_dir "/home/lys/projects/POC_Dadaset/20251208/patches/gt" \
     --lora_save_dir "./output_lora" \
     --batch_size 4 \

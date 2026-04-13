@@ -12,6 +12,12 @@ import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
+    "--dataset_dir",
+    type=str,
+    default="/homes/yusha/POC_Dataset/for_ControlNet_defect",
+    help="Base directory containing prompt.json and images",
+)
+parser.add_argument(
     "--mask_dir",
     type=str,
     default=None,
@@ -109,7 +115,7 @@ class SaveLoRACallback(pl.Callback):
             print(f"Saved LoRA weights to {save_file}")
 
 
-dataset = DefectDataset(mask_dir=args.mask_dir)
+dataset = DefectDataset(base_dir=args.dataset_dir, mask_dir=args.mask_dir)
 if len(dataset) == 0:
     print("Dataset is empty. Exiting...")
     exit(1)
