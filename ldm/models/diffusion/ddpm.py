@@ -1058,7 +1058,8 @@ class LatentDiffusion(DDPM):
 
     def shared_step(self, batch, **kwargs):
         x, c = self.get_input(batch, self.first_stage_key)
-        loss = self(x, c)
+        mask = batch.get("mask", None)
+        loss = self(x, c, mask=mask)
         return loss
 
     def forward(self, x, c, *args, **kwargs):
@@ -1115,7 +1116,7 @@ class LatentDiffusion(DDPM):
         )
         return mean_flat(kl_prior) / np.log(2.0)
 
-    def p_losses(self, x_start, cond, t, noise=None):
+    def p_losses(self, x_start, cond, t, noise=None, mask=None):
         noise = default(noise, lambda: torch.randn_like(x_start))
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
         model_output = self.apply_model(x_noisy, t, cond)
@@ -1132,7 +1133,31 @@ class LatentDiffusion(DDPM):
         else:
             raise NotImplementedError()
 
-        loss_simple = self.get_loss(model_output, target, mean=False).mean([1, 2, 3])
+        # Get un-averaged loss
+        loss_simple = self.get_loss(model_output, target, mean=False)
+
+        # Inject Mask Logic
+        if mask is not None:
+            if mask.dim() == 3:
+                mask = mask.unsqueeze(1)
+            # Safety check: if mask is (B, H, W, C) instead of (B, C, H, W)
+            elif (
+                mask.dim() == 4
+                and mask.shape[1] not in [1, 3, 4]
+                and mask.shape[3] in [1, 3, 4]
+            ):
+                mask = mask.permute(0, 3, 1, 2)
+
+            # Interpolate mask to match the latent spatial dimensions
+            mask = torch.nn.functional.interpolate(
+                mask, size=loss_simple.shape[-2:], mode="nearest"
+            )
+            loss_simple = loss_simple * mask
+
+        # Now apply the mean across spatial dimensions
+        loss_vlb = loss_simple.mean(dim=[1, 2, 3])
+        loss_simple = loss_simple.mean([1, 2, 3])
+
         loss_dict.update({f"{prefix}/loss_simple": loss_simple.mean()})
 
         logvar_t = self.logvar[t].to(self.device)
@@ -1144,7 +1169,6 @@ class LatentDiffusion(DDPM):
 
         loss = self.l_simple_weight * loss.mean()
 
-        loss_vlb = self.get_loss(model_output, target, mean=False).mean(dim=(1, 2, 3))
         loss_vlb = (self.lvlb_weights[t] * loss_vlb).mean()
         loss_dict.update({f"{prefix}/loss_vlb": loss_vlb})
         loss += self.original_elbo_weight * loss_vlb
@@ -1864,7 +1888,11 @@ class LatentUpscaleDiffusion(LatentDiffusion):
         log["inputs"] = x
         log["reconstruction"] = xrec
         log["x_lr"] = x_low
-        log[f"x_lr_rec_@noise_levels{'-'.join(map(lambda x: str(x), list(noise_level.cpu().numpy())))}"] = x_low_rec
+        log[
+            f"x_lr_rec_@noise_levels{
+                '-'.join(map(lambda x: str(x), list(noise_level.cpu().numpy())))
+            }"
+        ] = x_low_rec
         if self.model.conditioning_key is not None:
             if hasattr(self.cond_stage_model, "decode"):
                 xc = self.cond_stage_model.decode(c)

@@ -7,8 +7,18 @@ from cldm.model import create_model, load_state_dict
 import torch
 import os
 from lora import inject_trainable_lora, extract_lora_up_down
+import argparse
 
-#resume_path = "./models/control_sd15_normal_pfib.ckpt"
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--mask_dir",
+    type=str,
+    default=None,
+    help="Directory containing mask images for masked loss",
+)
+args = parser.parse_args()
+
+# resume_path = "./models/control_sd15_normal_pfib.ckpt"
 resume_path = "./lightning_logs/version_5616/checkpoints/epoch=24-step=5000.ckpt"  # trained on avalon data
 batch_size = 1
 logger_freq = 300
@@ -19,15 +29,17 @@ only_mid_control = False
 model = create_model("./models/cldm_v15.yaml").cpu()
 
 if os.path.exists(resume_path):
-    #model.load_state_dict(load_state_dict(resume_path, location="cpu"))
+    # model.load_state_dict(load_state_dict(resume_path, location="cpu"))
     model.load_state_dict(load_state_dict(resume_path, location="cpu"), strict=False)
     print(f"Loaded normal pfib ControlNet from {resume_path}")
 else:
     print(f"Warning: {resume_path} not found. Loading default fallback if possible...")
     fallback_path = "./models/control_sd15_ini.ckpt"
     if os.path.exists(fallback_path):
-        #model.load_state_dict(load_state_dict(fallback_path, location="cpu"))
-        model.load_state_dict(load_state_dict(resume_path, location="cpu"), strict=False)
+        # model.load_state_dict(load_state_dict(fallback_path, location="cpu"))
+        model.load_state_dict(
+            load_state_dict(resume_path, location="cpu"), strict=False
+        )
 
 model.learning_rate = learning_rate
 model.sd_locked = sd_locked
@@ -64,7 +76,7 @@ class SaveLoRACallback(pl.Callback):
             print(f"Saved LoRA weights to {save_file}")
 
 
-dataset = DefectDataset()
+dataset = DefectDataset(mask_dir=args.mask_dir)
 if len(dataset) == 0:
     print("Dataset is empty. Exiting...")
     exit(1)

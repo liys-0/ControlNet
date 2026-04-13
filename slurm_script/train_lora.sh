@@ -23,6 +23,6 @@ source venv/bin/activate
 # need to set up the data path for the training script 
 # need to set up the latest version of the trained model using normal pfib data 
 # Run the LoRA training script
-python train_lora_normal_pfib.py
+python train_lora_normal_pfib.py --mask_dir /home/lys/projects/POC_Dadaset/20251208/patches/gt
 
 echo "Job finished at $(date)"
