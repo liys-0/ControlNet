@@ -145,3 +145,5 @@ dmypy.json
 .pyre/
 
 /slurm_output/
+/output/ 
+/output_lora/
