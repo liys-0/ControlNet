@@ -94,7 +94,7 @@ def extract_lora_up_down(model):
     return lora_state_dict
 
 
-def load_lora_up_down(model, lora_state_dict):
+def load_lora_up_down(model, lora_state_dict, weight=1.0):
     for name, module in model.named_modules():
         if isinstance(module, LoRALinearLayer):
             if f"{name}.down.weight" in lora_state_dict:
@@ -104,5 +104,6 @@ def load_lora_up_down(model, lora_state_dict):
             if f"{name}.up.weight" in lora_state_dict:
                 module.up.weight.data.copy_(
                     lora_state_dict[f"{name}.up.weight"].to(module.up.weight.device)
+                    * weight
                 )
     return model

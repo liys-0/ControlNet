@@ -43,7 +43,12 @@ def generate_defect(args):
 
     if os.path.exists(args.lora_path):
         print(
-            f"Injecting LoRA and loading weights from {args.lora_path} with rank {args.lora_rank}"
+            f"Injecting LoRA and loading weights from {args.lora_path} with rank {args.lora_rank} and weight {args.lora_weight}"
+        )
+        inject_trainable_lora(model.model.diffusion_model, rank=args.lora_rank)
+        lora_dict = torch.load(args.lora_path, map_location="cuda")
+        model.model.diffusion_model = load_lora_up_down(
+            model.model.diffusion_model, lora_dict, weight=args.lora_weight
         )
         inject_trainable_lora(model.model.diffusion_model, rank=args.lora_rank)
         lora_dict = torch.load(args.lora_path, map_location="cuda")
@@ -176,6 +181,12 @@ if __name__ == "__main__":
         type=int,
         default=64,
         help="Rank dimension of the trained LoRA",
+    )
+    parser.add_argument(
+        "--lora_weight",
+        type=float,
+        default=1.0,
+        help="Multiplier for the LoRA's strength (e.g., 0.5 for weaker effect)",
     )
     parser.add_argument(
         "--prompt",
