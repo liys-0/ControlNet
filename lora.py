@@ -30,6 +30,18 @@ class LoRALinearLayer(nn.Module):
 
         return self.regular_linear(hidden_states) + self.scale * updown.to(orig_dtype)
 
+    @property
+    def in_features(self):
+        return self.regular_linear.in_features
+
+    @property
+    def out_features(self):
+        return self.regular_linear.out_features
+
+    @property
+    def bias(self):
+        return self.regular_linear.bias
+
 
 def inject_trainable_lora(model, rank=4, alpha=None):
     require_grad_params = []
@@ -41,6 +53,10 @@ def inject_trainable_lora(model, rank=4, alpha=None):
         ]:
             for proj_name in ["to_q", "to_k", "to_v"]:
                 orig_proj = getattr(module, proj_name)
+
+                # Skip if already a LoRALinearLayer
+                if isinstance(orig_proj, LoRALinearLayer):
+                    continue
 
                 in_features = orig_proj.in_features
                 out_features = orig_proj.out_features
@@ -65,6 +81,11 @@ def inject_trainable_lora(model, rank=4, alpha=None):
                 setattr(module, proj_name, lora_proj)
 
             orig_to_out = module.to_out[0]
+
+            # Skip if already a LoRALinearLayer
+            if isinstance(orig_to_out, LoRALinearLayer):
+                continue
+
             in_features = orig_to_out.in_features
             out_features = orig_to_out.out_features
             has_bias = orig_to_out.bias is not None
