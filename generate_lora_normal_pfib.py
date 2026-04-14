@@ -25,22 +25,27 @@ def generate_defect(args):
 
     if os.path.exists(args.controlnet_path):
         print(f"Loading ControlNet from {args.controlnet_path}")
-        #model.load_state_dict(load_state_dict(args.controlnet_path, location="cuda"))
-        model.load_state_dict(load_state_dict(args.controlnet_path, location="cuda"), strict=False)
+        # model.load_state_dict(load_state_dict(args.controlnet_path, location="cuda"))
+        model.load_state_dict(
+            load_state_dict(args.controlnet_path, location="cuda"), strict=False
+        )
     else:
         print(
             f"ControlNet {args.controlnet_path} not found. Attempting default model..."
         )
-        #model.load_state_dict(
+        # model.load_state_dict(
         #    load_state_dict("./models/control_sd15_canny.pth", location="cuda")
-        #)
+        # )
         model.load_state_dict(
-            load_state_dict("./models/control_sd15_canny.pth", location="cuda")
-        , strict=False)
+            load_state_dict("./models/control_sd15_canny.pth", location="cuda"),
+            strict=False,
+        )
 
     if os.path.exists(args.lora_path):
-        print(f"Injecting LoRA and loading weights from {args.lora_path}")
-        inject_trainable_lora(model.model.diffusion_model, rank=32)
+        print(
+            f"Injecting LoRA and loading weights from {args.lora_path} with rank {args.lora_rank}"
+        )
+        inject_trainable_lora(model.model.diffusion_model, rank=args.lora_rank)
         lora_dict = torch.load(args.lora_path, map_location="cuda")
         model.model.diffusion_model = load_lora_up_down(
             model.model.diffusion_model, lora_dict
@@ -165,6 +170,12 @@ if __name__ == "__main__":
         type=str,
         default="./models/lora_defect/lora_epoch_19.ckpt",
         help="Path to trained LoRA model",
+    )
+    parser.add_argument(
+        "--lora_rank",
+        type=int,
+        default=64,
+        help="Rank dimension of the trained LoRA",
     )
     parser.add_argument(
         "--prompt",
