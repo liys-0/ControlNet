@@ -23,13 +23,30 @@ source venv/bin/activate
 # Run the LoRA training script
 # trained on avalon dat
 
-#--lora_path "/homes/yusha/ControlNet/lightning_logs/version_5626/checkpoints/epoch=19-step=740.ckpt" \
+# Inside test_lora_pfib.slurm
+for Lora_Weight in 0.1 0.2 0.3; do
+    # Test Defect
+    python generate_lora_normal_pfib.py \
+        --input_image "/homes/yusha/POC_Dataset/for_ControlNet_defect/source/3_patch_r01_c01.png" \
+        --output_image "/homes/yusha/POC_Dataset/for_ControlNet_defect/generated/3_patch_r01_c01_defect_${Lora_Weight}.png" \
+        --controlnet_path "/homes/yusha/ControlNet/output/lightning_logs/version_6398/checkpoints/epoch=24-step=5000.ckpt" \
+        --lora_path "/homes/yusha/ControlNet/output_lora/lora_epoch_99.ckpt" \
+        --lora_weight $Lora_Weight \
+        --prompt "normal pfib background, trigger_word_defect, extreme heavy film grain, tv static, electron noise, uniform noise, grainy, flat lighting, low contrast, washed out, gray" \
+        --n_prompt "smooth, denoised, plastic, fluid, melted, clear, high quality, directional lighting" \
+        --scale 3.5 \
+        --seed 42
 
-python generate_lora_normal_pfib.py \
-    --input_image "/homes/yusha/POC_Dataset/for_ControlNet_defect/source/3_patch_r01_c02.png" \
-    --output_image "/homes/yusha/POC_Dataset/for_ControlNet_defect/generated/3_patch_r01_c02_generated.png" \
-    --controlnet_path "/homes/yusha/ControlNet/lightning_logs/version_5616/checkpoints/epoch=23-step=5000.ckpt" \
-    --raw_control_image "/homes/yusha/POC_Dataset/for_ControlNet_defect/source/3_patch_r01_c02.png" \
-    --num_samples 5
 
-echo "Job finished at $(date)"
+    # Test Normal
+    python generate_lora_normal_pfib.py \
+        --input_image "/homes/yusha/POC_Dataset/for_ControlNet_defect/source/3_patch_r01_c01.png" \
+        --output_image "/homes/yusha/POC_Dataset/for_ControlNet_defect/generated/3_patch_r01_c01_normal_${Lora_Weight}.png" \
+        --controlnet_path "/homes/yusha/ControlNet/output/lightning_logs/version_6398/checkpoints/epoch=24-step=5000.ckpt" \
+        --lora_path "/homes/yusha/ControlNet/output_lora/lora_epoch_99.ckpt" \
+        --prompt "normal pfib background, trigger_word_defect, extreme heavy film grain, tv static, electron noise, uniform noise, grainy, flat lighting, low contrast, washed out, gray" \
+        --n_prompt "smooth, denoised, plastic, fluid, melted, clear, high quality, directional lighting, shadows, deep blacks, glowing whites, high contrast, sharp edges" \
+        --lora_weight $Lora_Weight \
+        --scale 3.5 \
+        --seed 42
+done

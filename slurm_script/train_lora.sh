@@ -25,7 +25,8 @@ source venv/bin/activate
 # Run the LoRA training script
 python train_lora_defect_pfib.py \
     --dataset_dir "/homes/yusha/POC_Dataset/for_ControlNet_defect" \
-    --mask_dir "/home/lys/projects/POC_Dadaset/20251208/patches/gt" \
+    --mask_dir "/homes/yusha/POC_Dataset/20251208/patches/gt" \
+    --resume_path "/homes/yusha/ControlNet/output/run_6398/lightning_logs/version_6398/checkpoints/epoch=24-step=5000.ckpt" \
     --lora_save_dir "./output_lora" \
     --batch_size 4 \
     --learning_rate 1e-4 \

@@ -40,13 +40,13 @@ echo "Working Directory: $(pwd)"
 # Activate virtual environment
 source venv/bin/activate
 
-DATA_DIR="/homes/yusha/POC_Dataset/for_ControlNet/"
+DATA_DIR="/homes/yusha/POC_Dataset/for_ControlNet_all/"
 RESUME_PATH="./models/control_sd15_canny.pth"
 MODEL_YAML="./models/cldm_v15.yaml"
 BATCH_SIZE=1
-LOGGER_FREQ=300
-LEARNING_RATE=1e-5
-MAX_STEPS=5000
+LOGGER_FREQ=200
+LEARNING_RATE=5e-6
+MAX_STEPS=10000
 OUTPUT_DIR="./output/run_${SLURM_JOB_ID:-local}"
 
 while [[ "$#" -gt 0 ]]; do

@@ -17,13 +17,10 @@ echo "Working Directory: $(pwd)"
 # Activate virtual environment
 source venv/bin/activate
 
-#python test_my_pfib_model.py
-##--input_folder "/homes/yusha/POC_Dataset/for_ControlNet/source" \
-##--input_folder "/homes/yusha/POC_Dataset/20251208/patches/avalon" \
 python test_headless.py \
-  --input_folder "/homes/yusha/POC_Dataset/for_ControlNet_defect/source" \
-  --output_folder "/homes/yusha/POC_Dataset/for_ControlNet/5626_generated_results_from_edge_map" \
-  --checkpoint "./lightning_logs/version_5626/checkpoints/epoch=19-step=740.ckpt" \
+  --input_folder "/homes/yusha/POC_Dataset/for_ControlNet_defect/source_edgemap_overlay_avalon_defect_edge" \
+  --output_folder "/homes/yusha/POC_Dataset/for_ControlNet_defect/6488_generated_results_from_edge_map" \
+  --checkpoint "/homes/yusha/ControlNet/output/run_6488/lightning_logs/version_6488/checkpoints/epoch=39-step=10000.ckpt" \
   --prompt "normal pfib" \
   --raw_control_image False \
   --num_samples 5
