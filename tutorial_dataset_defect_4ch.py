@@ -38,7 +38,12 @@ class DefectDataset4Ch(Dataset):
         target = cv2.imread(os.path.join(self.base_dir, target_filename))
 
         if self.mask_dir is not None:
-            mask_path = os.path.join(self.mask_dir, os.path.basename(target_filename))
+            mask_name = os.path.basename(target_filename)
+            if mask_name.startswith("defect_"):
+                mask_name = mask_name[len("defect_"):]
+            elif mask_name.startswith("normal_"):
+                mask_name = mask_name[len("normal_"):]
+            mask_path = os.path.join(self.mask_dir, mask_name)
         else:
             mask_path = os.path.join(
                 self.base_dir, os.path.dirname(source_filename), "mask.png"
