@@ -23,7 +23,9 @@ cd ..
 
 python train_controlnet_defect_edge_mask.py \
     --dataset_dir "/homes/yusha/POC_Dataset/for_ControlNet_all/" \
-    --save_dir "./models/controlnet_defect_edge_mask    " \
+    --mask_dir "/home/lys/projects/POC_Dadaset/20251208/patches/gt" \
+    --resume_path "./models/control_v11p_sd15_canny.pth" \
+    --save_dir "./models/controlnet_defect_edge_mask" \
     --batch_size 4 \
     --learning_rate 1e-5 \
     --max_epochs 100 \

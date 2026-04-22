@@ -18,9 +18,11 @@ echo "Working Directory: $(pwd)"
 source ../venv/bin/activate || source venv/bin/activate || true
 cd ..
 
-python test_controlnet_defect_edge.py \
-    --model_path "./models/controlnet_defect_edge/lightning_logs/version_0/checkpoints/last.ckpt" \
+python test_controlnet_defect_edge_mask.py \
+    --model_path "./models/controlnet_defect_edge_mask/lightning_logs/version_0/checkpoints/last.ckpt" \
+    --resume_path "./models/control_v11p_sd15_canny.pth" \
     --test_dir "/homes/yusha/POC_Dataset/for_ControlNet_defect" \
-    --output_dir "./test_results/defect_edge"
+    --mask_dir "/home/lys/projects/POC_Dadaset/20251208/patches/gt" \
+    --output_dir "./test_results/defect_edge_mask"
 
 echo "Job finished at $(date)"

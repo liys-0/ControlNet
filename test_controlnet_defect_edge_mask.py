@@ -13,7 +13,9 @@ from cldm.ddim_hacked import DDIMSampler
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_path", type=str, required=True, help="Path to the trained checkpoint (.ckpt)")
+    parser.add_argument("--resume_path", type=str, default=None, help="Path to base model (e.g. control_v11p_sd15_canny.pth)")
     parser.add_argument("--test_dir", type=str, required=True, help="Directory containing source images or prompt.json")
+    parser.add_argument("--mask_dir", type=str, default=None, help="Directory containing mask images (optional)")
     parser.add_argument("--output_dir", type=str, required=True, help="Directory to save generated images")
     parser.add_argument("--model_config", type=str, default="./models/cldm_v15.yaml", help="Model config file")
     parser.add_argument("--image_resolution", type=int, default=512, help="Resolution to resize images to")
@@ -34,6 +36,10 @@ def main():
 
     print(f"Loading model architecture from {args.model_config}")
     model = create_model(args.model_config).cpu()
+
+    if args.resume_path and os.path.exists(args.resume_path):
+        print(f"Loading base model from {args.resume_path}")
+        model.load_state_dict(load_state_dict(args.resume_path, location="cpu"), strict=False)
 
     print(f"Loading trained weights from {args.model_path}")
     state_dict = load_state_dict(args.model_path, location="cpu")

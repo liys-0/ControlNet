@@ -147,3 +147,5 @@ dmypy.json
 /slurm_output/
 /output/ 
 /output_lora/
+/test_4ch_images/
+/test_4ch_masks/
