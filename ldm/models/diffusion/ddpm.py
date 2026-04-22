@@ -1152,7 +1152,11 @@ class LatentDiffusion(DDPM):
             mask = torch.nn.functional.interpolate(
                 mask, size=loss_simple.shape[-2:], mode="nearest"
             )
-            loss_simple = loss_simple * mask
+            
+            # --- REVISED LOSS: Soft Masking ---
+            # Defect region gets 1.0x weight, Background gets 0.1x weight
+            bg_weight = 0.1
+            loss_simple = (mask * loss_simple) + (bg_weight * (1.0 - mask) * loss_simple)
 
         # Now apply the mean across spatial dimensions
         loss_vlb = loss_simple.mean(dim=[1, 2, 3])

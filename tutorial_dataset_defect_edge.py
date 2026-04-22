@@ -1,0 +1,75 @@
+import json
+import cv2
+import numpy as np
+import os
+import torch
+from torch.utils.data import Dataset
+
+class DefectDatasetEdge(Dataset):
+    def __init__(
+        self, base_dir="/homes/yusha/POC_Dataset/for_ControlNet_defect", mask_dir=None
+    ):
+        self.data = []
+        self.base_dir = base_dir
+        self.mask_dir = mask_dir
+        json_path = os.path.join(base_dir, "prompt.json")
+
+        if not os.path.exists(json_path):
+            print(
+                f"Warning: {json_path} not found. Please run prepare_defect_dataset.py first."
+            )
+            return
+
+        with open(json_path, "rt") as f:
+            for line in f:
+                self.data.append(json.loads(line))
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+        item = self.data[idx]
+
+        source_filename = item["source"]
+        target_filename = item["target"]
+        prompt = item["prompt"]
+
+        # Load the source (edgemap) as grayscale
+        source = cv2.imread(os.path.join(self.base_dir, source_filename), cv2.IMREAD_GRAYSCALE)
+        
+        target = cv2.imread(os.path.join(self.base_dir, target_filename))
+
+        if self.mask_dir is not None:
+            mask_name = os.path.basename(target_filename)
+            if mask_name.startswith("defect_"):
+                mask_name = mask_name[len("defect_"):]
+            elif mask_name.startswith("normal_"):
+                mask_name = mask_name[len("normal_"):]
+            mask_path = os.path.join(self.mask_dir, mask_name)
+        else:
+            mask_path = os.path.join(
+                self.base_dir, os.path.dirname(source_filename), "mask.png"
+            )
+
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        if mask is None:
+            raise FileNotFoundError(f"Cannot find mask image at {mask_path}")
+
+        target = cv2.cvtColor(target, cv2.COLOR_BGR2RGB)
+
+        # Normalize the edgemap (hint) to [0, 1]
+        source = source.astype(np.float32) / 255.0
+        
+        # Normalize the SD target to [-1, 1]
+        target = (target.astype(np.float32) / 127.5) - 1.0
+
+        # Stack the 1-channel edgemap into 3 identical channels (H, W, 3)
+        hint_3ch = np.stack([source, source, source], axis=-1)
+
+        # Normalize the mask for the ddpm loss logic
+        mask = mask.astype(np.float32) / 255.0
+        mask_tensor = torch.tensor(mask, dtype=torch.float32)
+
+        prompt = "PFIB image, grayscale SEM image, with defect"
+
+        return dict(jpg=target, txt=prompt, hint=hint_3ch, mask=mask_tensor)
