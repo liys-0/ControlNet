@@ -63,13 +63,11 @@ class DefectDatasetEdge(Dataset):
         # Normalize the SD target to [-1, 1]
         target = (target.astype(np.float32) / 127.5) - 1.0
 
-        # Stack the 1-channel edgemap into 3 identical channels (H, W, 3)
         hint_3ch = np.stack([source, source, source], axis=-1)
+        hint_4ch = np.concatenate([hint_3ch, mask[..., np.newaxis]], axis=-1)
 
-        # Normalize the mask for the ddpm loss logic
-        mask = mask.astype(np.float32) / 255.0
         mask_tensor = torch.tensor(mask, dtype=torch.float32)
 
         prompt = "PFIB image, grayscale SEM image, with defect"
 
-        return dict(jpg=target, txt=prompt, hint=hint_3ch, mask=mask_tensor)
+        return dict(jpg=target, txt=prompt, hint=hint_4ch, mask=mask_tensor)

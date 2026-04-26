@@ -56,8 +56,19 @@ with open(os.path.join(args.save_dir, "training_args.json"), "w") as f:
 model = create_model(args.model_config).cpu()
 
 if os.path.exists(args.resume_path):
-    model.load_state_dict(load_state_dict(args.resume_path, location="cpu"), strict=False)
-    print(f"Loaded pretrained 3-channel base model from {args.resume_path}")
+    pretrained_weights = load_state_dict(args.resume_path, location="cpu")
+    
+    target_key = "control_model.input_hint_block.0.weight"
+    if target_key in pretrained_weights:
+        old_weight = pretrained_weights[target_key]
+        if old_weight.shape[1] == 3:
+            new_weight = torch.zeros((16, 4, 3, 3), dtype=old_weight.dtype)
+            new_weight[:, :3, :, :] = old_weight
+            pretrained_weights[target_key] = new_weight
+            print(f"Modified '{target_key}' from {old_weight.shape} to {new_weight.shape} (4th channel initialized to zero).")
+
+    model.load_state_dict(pretrained_weights, strict=False)
+    print(f"Loaded pretrained model from {args.resume_path}")
 else:
     print(f"Warning: {args.resume_path} not found.")
     print("Please download a pretrained ControlNet (like Canny) and place it there to avoid random initialization collapse.")
