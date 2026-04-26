@@ -149,3 +149,4 @@ dmypy.json
 /output_lora/
 /test_4ch_images/
 /test_4ch_masks/
+models/
