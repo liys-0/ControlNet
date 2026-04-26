@@ -20,7 +20,7 @@ cd ..
 
 python test_controlnet_defect_edge_mask.py \
     --model_path "./models/controlnet_defect_edge_mask/lightning_logs/version_0/checkpoints/last.ckpt" \
-    --resume_path "./models/control_v11p_sd15_canny.pth" \
+    --resume_path "./models/control_sd15_canny.pth" \
     --test_dir "/homes/yusha/POC_Dataset/for_ControlNet_defect" \
     --mask_dir "/home/lys/projects/POC_Dadaset/20251208/patches/gt" \
     --output_dir "./test_results/defect_edge_mask"

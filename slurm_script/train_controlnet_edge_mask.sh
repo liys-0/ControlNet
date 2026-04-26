@@ -21,10 +21,54 @@ echo "Working Directory: $(pwd)"
 source ../venv/bin/activate || source venv/bin/activate || true
 cd ..
 
+DATASET_DIR="/homes/yusha/POC_Dataset/for_ControlNet_all/"
+MASK_DIR="/home/lys/projects/POC_Dadaset/20251208/patches/gt"
+
+if [ ! -d "$DATASET_DIR" ]; then
+    echo "Error: Dataset directory $DATASET_DIR does not exist."
+    exit 1
+fi
+
+if [ ! -d "$MASK_DIR" ]; then
+    echo "Error: Mask directory $MASK_DIR does not exist."
+    exit 1
+fi
+
+PROMPT_FILE="$DATASET_DIR/prompt.json"
+if [ ! -f "$PROMPT_FILE" ]; then
+    echo "Error: prompt.json not found in $DATASET_DIR"
+    exit 1
+fi
+
+MISSING_MASKS=0
+
+while IFS= read -r line; do
+    if [[ "$line" =~ \"target\":\ *\"([^\"]+)\" ]]; then
+        target_filename="${BASH_REMATCH[1]}"
+        mask_name=$(basename "$target_filename")
+        
+        mask_name="${mask_name#defect_}"
+        mask_name="${mask_name#normal_}"
+        
+        mask_path="$MASK_DIR/$mask_name"
+        if [ ! -f "$mask_path" ]; then
+            echo "Warning: Missing mask for target image '$target_filename' at expected path: $mask_path"
+            MISSING_MASKS=1
+        fi
+    fi
+done < "$PROMPT_FILE"
+
+if [ "$MISSING_MASKS" -eq 1 ]; then
+    echo "Error: One or more images are missing their corresponding masks. Stopping."
+    exit 1
+fi
+
+echo "All images have their corresponding masks. Starting training..."
+
 python train_controlnet_defect_edge_mask.py \
-    --dataset_dir "/homes/yusha/POC_Dataset/for_ControlNet_all/" \
-    --mask_dir "/home/lys/projects/POC_Dadaset/20251208/patches/gt" \
-    --resume_path "./models/control_v11p_sd15_canny.pth" \
+    --dataset_dir "$DATASET_DIR" \
+    --mask_dir "$MASK_DIR" \
+    --resume_path "./models/control_sd15_canny.pth" \
     --save_dir "./models/controlnet_defect_edge_mask" \
     --batch_size 4 \
     --learning_rate 1e-5 \
