@@ -57,9 +57,11 @@ def main():
             for line in f:
                 item = json.loads(line)
                 source_filename = item['source']
+                target_filename = item.get('target', '')
                 prompt = item['prompt']
                 test_cases.append({
                     "image_path": os.path.join(args.test_dir, source_filename),
+                    "target_filename": target_filename,
                     "prompt": prompt,
                     "filename": os.path.basename(source_filename)
                 })
@@ -70,6 +72,7 @@ def main():
             if f.lower().endswith(valid_extensions):
                 test_cases.append({
                     "image_path": os.path.join(args.test_dir, f),
+                    "target_filename": f,
                     "prompt": "defect",
                     "filename": f
                 })
@@ -84,6 +87,7 @@ def main():
         image_path = case["image_path"]
         base_prompt = case["prompt"]
         filename = case["filename"]
+        target_filename = case.get("target_filename", "")
         
         if not os.path.exists(image_path):
             print(f"Warning: Image {image_path} not found. Skipping.")
@@ -99,7 +103,31 @@ def main():
         control_img = HWC3(control_img)
         control_img = resize_image(control_img, args.image_resolution)
 
-        control = torch.from_numpy(control_img.copy()).float().cuda() / 255.0
+        H, W, C = control_img.shape
+
+        mask = np.zeros((H, W, 1), dtype=np.uint8)
+        mask_path = None
+        if args.mask_dir is not None and target_filename:
+            mask_name = os.path.basename(target_filename)
+            if mask_name.startswith("defect_"):
+                mask_name = mask_name[len("defect_"):]
+            elif mask_name.startswith("normal_"):
+                mask_name = mask_name[len("normal_"):]
+            mask_path = os.path.join(args.mask_dir, mask_name)
+        else:
+            mask_path = os.path.join(os.path.dirname(image_path), "mask.png")
+            
+        if mask_path is not None and os.path.exists(mask_path):
+            mask_img = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+            if mask_img is not None:
+                mask = cv2.resize(mask_img, (W, H), interpolation=cv2.INTER_NEAREST)[..., np.newaxis]
+
+        control_img = control_img.astype(np.float32) / 255.0
+        mask = mask.astype(np.float32)
+
+        control_img_4ch = np.concatenate([control_img, mask], axis=-1)
+
+        control = torch.from_numpy(control_img_4ch.copy()).cuda()
         control = torch.stack([control for _ in range(args.num_samples)], dim=0)
         control = einops.rearrange(control, 'b h w c -> b c h w').clone()
 
