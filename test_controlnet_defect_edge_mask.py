@@ -23,6 +23,8 @@ def main():
     parser.add_argument("--ddim_steps", type=int, default=20, help="DDIM sampling steps")
     parser.add_argument("--guess_mode", action="store_true", help="Enable guess mode")
     parser.add_argument("--strength", type=float, default=1.0, help="Control strength")
+    parser.add_argument("--control_end", type=float, default=1.0, help="Percentage of steps to apply ControlNet (0.0 to 1.0)")
+    parser.add_argument("--erase_edge_in_mask", action="store_true", help="Erase the edge map inside the masked region (Solution 1)")
     parser.add_argument("--scale", type=float, default=9.0, help="Unconditional guidance scale")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--eta", type=float, default=0.0, help="DDIM eta")
@@ -122,6 +124,9 @@ def main():
             if mask_img is not None:
                 mask = cv2.resize(mask_img, (W, H), interpolation=cv2.INTER_NEAREST)[..., np.newaxis]
 
+        if args.erase_edge_in_mask and mask_path is not None and os.path.exists(mask_path):
+            control_img[mask[..., 0] > 127] = 0
+
         control_img = control_img.astype(np.float32) / 255.0
         mask = mask.astype(np.float32)
 
@@ -138,6 +143,10 @@ def main():
 
         model.control_scales = [args.strength * (0.825 ** float(12 - i)) for i in range(13)] if args.guess_mode else ([args.strength] * 13)
 
+        def step_callback(step_idx):
+            if step_idx >= int(args.ddim_steps * args.control_end):
+                model.control_scales = [0.0] * 13
+
         samples, _ = ddim_sampler.sample(
             args.ddim_steps,
             args.num_samples,
@@ -146,7 +155,8 @@ def main():
             verbose=False,
             eta=args.eta,
             unconditional_guidance_scale=args.scale,
-            unconditional_conditioning=un_cond
+            unconditional_conditioning=un_cond,
+            callback=step_callback
         )
 
         x_samples = model.decode_first_stage(samples)
