@@ -64,9 +64,10 @@ class DefectDatasetEdge(Dataset):
         target = (target.astype(np.float32) / 127.5) - 1.0
 
         hint_3ch = np.stack([source, source, source], axis=-1)
-        hint_4ch = np.concatenate([hint_3ch, mask[..., np.newaxis]], axis=-1)
+        mask_norm = mask[..., np.newaxis].astype(np.float32) / 255.0
+        hint_4ch = np.concatenate([hint_3ch, mask_norm], axis=-1)
 
-        mask_tensor = torch.tensor(mask, dtype=torch.float32)
+        mask_tensor = torch.tensor(mask, dtype=torch.float32) / 255.0
 
         prompt = "PFIB image, grayscale SEM image, with defect"
 

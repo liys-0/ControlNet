@@ -24,7 +24,7 @@ echo "Working Directory: $(pwd)"
 
 source /homes/yusha/ControlNet/venv/bin/activate
 
-DATASET_DIR="/homes/yusha/POC_Dataset/for_ControlNet_all/"
+DATASET_DIR="/homes/yusha/POC_Dataset/for_ControlNet_all/for_avalon_train"
 MASK_DIR="/homes/yusha/POC_Dataset/20251208/patches/gt"
 
 if [ ! -d "$DATASET_DIR" ]; then
@@ -71,8 +71,8 @@ echo "All images have their corresponding masks. Starting training..."
 srun python train_controlnet_defect_edge_mask.py \
     --dataset_dir "$DATASET_DIR" \
     --mask_dir "$MASK_DIR" \
-    --resume_path "./models/control_sd15_canny.pth" \
-    --save_dir "./models/controlnet_defect_edge_mask/run270402_not_normalized_mask/" \
+    --resume_path "./models/control_sd15_ini.pth" \
+    --save_dir "./models/controlnet_defect_edge_mask/run270402_avalon_not_normalized_mask/" \
     --batch_size 4 \
     --learning_rate 1e-5 \
     --max_epochs 100 \

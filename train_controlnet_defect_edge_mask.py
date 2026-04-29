@@ -4,6 +4,7 @@ from tutorial_dataset_defect_edge import DefectDatasetEdge
 from cldm.logger import ImageLogger
 from cldm.model import create_model, load_state_dict
 import torch
+torch.set_float32_matmul_precision('high')
 import os
 import argparse
 import json

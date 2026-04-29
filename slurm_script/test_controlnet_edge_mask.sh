@@ -15,14 +15,16 @@ echo "Node: $SLURM_NODELIST"
 echo "Start Time: $(date)"
 echo "Working Directory: $(pwd)"
 
-source ../venv/bin/activate || source venv/bin/activate || true
-cd ..
+#ource ../venv/bin/activate || source venv/bin/activate || true
+source /homes/yusha/ControlNet/venv/bin/activate
 
 python test_controlnet_defect_edge_mask.py \
-    --model_path "./models/controlnet_defect_edge_mask/lightning_logs/version_0/checkpoints/last.ckpt" \
-    --resume_path "./models/control_sd15_canny.pth" \
-    --test_dir "/homes/yusha/POC_Dataset/for_ControlNet_defect" \
-    --mask_dir "/home/lys/projects/POC_Dadaset/20251208/patches/gt" \
-    --output_dir "./test_results/defect_edge_mask"
+    --model_path "./models/controlnet_defect_edge_mask/run270403_avalon_not_normalized_mask/controlnet-epochepoch=75-v1.ckpt" \
+    --test_dir "/homes/yusha/POC_Dataset/for_ControlNet_all/test_4ch_edge_map" \
+    --mask_dir "/homes/yusha/POC_Dataset/for_ControlNet_all/test_4ch_masks" \
+    --output_dir "/homes/yusha/POC_Dataset/for_ControlNet_all/gen_4ch_avalon_defect_image_epoc75" \
+    --num_samples 10
+
+
 
 echo "Job finished at $(date)"
