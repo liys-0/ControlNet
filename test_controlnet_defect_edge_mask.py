@@ -30,7 +30,10 @@ def main():
     parser.add_argument("--eta", type=float, default=0.0, help="DDIM eta")
     parser.add_argument("--a_prompt", type=str, default="best quality, extremely detailed", help="Added prompt")
     parser.add_argument("--n_prompt", type=str, default="longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality", help="Negative prompt")
-    
+    parser.add_argument("--fp16", action="store_true",
+                        help="Run sampling under torch.autocast(fp16) for ~2x speedup on V100/A100. "
+                             "Weights stay fp32; only ops are cast.")
+
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
@@ -128,7 +131,7 @@ def main():
             control_img[mask[..., 0] > 127] = 0
 
         control_img = control_img.astype(np.float32) / 255.0
-        mask = mask.astype(np.float32)
+        mask = mask.astype(np.float32) / 64.0
 
         control_img_4ch = np.concatenate([control_img, mask], axis=-1)
 

@@ -47,6 +47,24 @@ parser.add_argument("--accumulate_grad_batches", type=int, default=4)
 parser.add_argument("--save_freq", type=int, default=1)
 parser.add_argument("--save_dir", type=str, default="./models/controlnet_defect_edge")
 parser.add_argument("--num_workers", type=int, default=4)
+# Added 2026-04-30: full Lightning resume after disk-full crash at epoch 83.
+# --ckpt_path restores optimizer state, LR scheduler, epoch counter, and global_step
+# so training continues exactly where it stopped (not a fresh fine-tune).
+parser.add_argument(
+    "--ckpt_path",
+    type=str,
+    default=None,
+    help="Lightning checkpoint to resume from (restores optimizer/epoch/global_step). "
+         "When set, --resume_path pretrained weights are overwritten by this checkpoint."
+)
+# Cap on-disk checkpoints. Original code hard-coded save_top_k=-1 which kept every
+# epoch and filled the 1.8 TB disk (188 GB of ckpts) — that's what caused the crash.
+parser.add_argument(
+    "--save_top_k",
+    type=int,
+    default=3,
+    help="How many epoch checkpoints to keep on disk. -1 keeps all (will fill disk)."
+)
 
 args = parser.parse_args()
 
@@ -92,11 +110,21 @@ dataloader = DataLoader(
 )
 logger = ImageLogger(batch_frequency=args.logger_freq)
 
+# save_top_k>0 requires a `monitor` metric in Lightning, otherwise it raises
+# MisconfigurationException. We track train/loss_epoch (already logged by ControlLDM)
+# and keep the K best-loss ckpts. save_last=True separately maintains a `last.ckpt`
+# pointing at the most recent epoch — that's the file to use for resume after a crash.
+# auto_insert_metric_name=False stops Lightning from prefixing "train/loss_epoch=" into
+# the filename (the slash breaks paths); we embed the value manually instead.
 checkpoint_callback = pl.callbacks.ModelCheckpoint(
     dirpath=args.save_dir,
-    filename="controlnet-epoch{epoch:02d}",
+    filename="controlnet-epoch{epoch:02d}-{train/loss_epoch:.4f}",
     every_n_epochs=args.save_freq,
-    save_top_k=-1, # Save all checkpoints
+    save_top_k=args.save_top_k,
+    save_last=True,
+    monitor="train/loss_epoch",
+    mode="min",
+    auto_insert_metric_name=False,
 )
 
 trainer = pl.Trainer(
@@ -111,4 +139,5 @@ trainer = pl.Trainer(
 )
 
 print("Starting 3-channel Edge ControlNet training with soft mask loss...")
-trainer.fit(model, dataloader)
+# ckpt_path=None → fresh run; ckpt_path=<file> → resume optimizer/epoch/step state.
+trainer.fit(model, dataloader, ckpt_path=args.ckpt_path)
