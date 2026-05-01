@@ -34,3 +34,4 @@ basicsr==1.4.2
 # --- Additional required (fix hidden errors) ---
 numpy==1.24.4
 diffusers==0.20.2
+
